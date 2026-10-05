@@ -37,27 +37,22 @@ where the random component is sampled from a Gaussian distribution.
 
 The weathervane mechanism is represented by:
 
-$$
 \psi_i = \phi_i + \alpha\sin(\theta)
-$$
 
 where:
-$$
-  \(\phi_i\) is the random curvature
-  \(\alpha\) is the weathervane index
-  \(\theta\) is the bearing of the odour source relative to the worm's direction
-$$
-### Klinokinesis
+
+(\phi_i) is the random curvature
+(\alpha) is the weathervane index
+(\theta) is the bearing of the odour source relative to the worm's direction
+Klinokinesis
 
 The probability of a pirouette is dependent on the worm's direction relative to the odour source:
 
-$$
 P_{\mathrm{pirouette}}
 =
 P_{\mathrm{basal}}
 -
 I_{\mathrm{pirouette}}\cos(\theta)
-$$
 
 A pirouette causes the worm to make a large reorientation before continuing its movement.
 
