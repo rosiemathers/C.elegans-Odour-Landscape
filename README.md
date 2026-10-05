@@ -42,11 +42,11 @@ $$
 $$
 
 where:
-
-* \(\phi_i\) is the random curvature
-* \(\alpha\) is the weathervane index
-* \(\theta\) is the bearing of the odour source relative to the worm's direction
-
+$$
+  \(\phi_i\) is the random curvature
+  \(\alpha\) is the weathervane index
+  \(\theta\) is the bearing of the odour source relative to the worm's direction
+$$
 ### Klinokinesis
 
 The probability of a pirouette is dependent on the worm's direction relative to the odour source:
