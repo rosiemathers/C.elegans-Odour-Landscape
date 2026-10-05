@@ -1,16 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
-
-# ============================================================
-# 1. ODOUR LANDSCAPE
-# ============================================================
-
+#odour landscape
 def odour_concentration(x, y, source_x=10, source_y=0):
     """
     Smooth odour concentration field.
-
-    The source is at (source_x, source_y).
+    The source is at postion (source_x, source_y).
     Concentration decreases with distance.
     """
 
@@ -19,7 +13,7 @@ def odour_concentration(x, y, source_x=10, source_y=0):
         (y - source_y)**2
     )
 
-    # Characteristic length scale of the odour
+    # characteristic length scale of the odour
     decay_length = 8.0
 
     concentration = np.exp(-distance / decay_length)
@@ -27,9 +21,7 @@ def odour_concentration(x, y, source_x=10, source_y=0):
     return concentration
 
 
-# ============================================================
-# 2. SIMULATION PARAMETERS
-# ============================================================
+#parameters for simulation
 
 DT = 0.5                 # timestep (seconds)
 SPEED = 0.22             # worm speed (mm/s)
@@ -38,62 +30,40 @@ STEP_SIZE = SPEED * DT   # distance travelled per timestep
 N_STEPS = 2000           # 1000 seconds
 N_WORMS = 100
 
-# Correlated curvature parameters from Yoshida et al.
+# correlated curvature parameters from Yoshida et al. paper
 CURVATURE_MEMORY = 0.933
 CURVATURE_NOISE = 11.6
 
-
-# ============================================================
-# 3. PIRouETTE PARAMETERS
-# ============================================================
-
-# These are simplified values for reconstruction.
-# The paper's exact behavioural parameters are presented
-# graphically rather than as a complete numerical table.
+#pirouette paramers
+#simplified values for reconstruction, paper's exact behavioural parameters are presented graphically (rather than as a complete numerical table)
 
 BASE_PIRouETTE_PROB = 0.025
 
-# Positive value means:
-# moving down the attractive gradient increases turning.
+# positive value means: moving down the attractive gradient increases turning
 PIRouETTE_INDEX = 0.025
 
 
-# ============================================================
-# 4. WEATHERVANE PARAMETERS
-# ============================================================
-
-# Controls strength of klinotaxis.
+#weathervane parameters
+# controls strength of klinotaxis.
 WEATHERVANE_INDEX = 8.0
 
-
-# ============================================================
-# 5. HELPER FUNCTIONS
-# ============================================================
-
+# additional functions
 def angle_difference(a, b):
-    """
-    Smallest difference between two angles.
-    """
+    # smallest difference between two angles.
     return np.arctan2(
         np.sin(a - b),
         np.cos(a - b)
     )
 
 
-def source_bearing(x, y, direction,
-                   source_x=10, source_y=0):
+def source_bearing(x, y, direction, source_x=10, source_y=0):
     """
     Calculate angle of the odour source relative
     to the worm's current direction.
 
-    theta = 0:
-        source directly ahead
-
-    theta > 0:
-        source to one side
-
-    theta < 0:
-        source to the other side
+    theta = 0: source directly ahead
+    theta > 0: source to one side
+    theta < 0:source to the other side
     """
 
     angle_to_source = np.arctan2(
@@ -133,11 +103,7 @@ def pirouette_probability(theta):
 
     return np.clip(probability, 0, 1)
 
-
-# ============================================================
-# 6. SIMULATE ONE WORM
-# ============================================================
-
+#simulate one worm
 def simulate_worm(
     mechanism="both",
     start_x=0,
@@ -171,81 +137,33 @@ def simulate_worm(
     pirouettes = 0
 
     for i in range(N_STEPS):
-
-        # ----------------------------------------------------
-        # Record current position
-        # ----------------------------------------------------
-
+        #records current position
         trajectory_x[i] = x
         trajectory_y[i] = y
 
-        concentrations[i] = odour_concentration(
-            x, y,
-            source_x,
-            source_y
-        )
-
-        # ----------------------------------------------------
-        # Correlated random curvature
-        # ----------------------------------------------------
-
-        random_noise = np.random.normal(
-            0,
-            CURVATURE_NOISE
-        )
-
-        curvature = (
-            CURVATURE_MEMORY * curvature
-            + random_noise
-        )
-
-        # ----------------------------------------------------
+        concentrations[i] = odour_concentration( x, ysource_x, source_y)
+        # correlated random curvature
+        random_noise = np.random.normal(0, CURVATURE_NOISE)
+        curvature = ( CURVATURE_MEMORY * curvature + random_noise )
         # Angle between worm direction and source
-        # ----------------------------------------------------
+        theta = source_bearing(x, y, direction, source_x, source_y)
 
-        theta = source_bearing(
-            x,
-            y,
-            direction,
-            source_x,
-            source_y
-        )
-
-        # ----------------------------------------------------
-        # KLINOTAXIS / WEATHERVANE
-        # ----------------------------------------------------
+        # Klinotaxis / Weathervane
 
         if mechanism in ["klinotaxis", "both"]:
 
-            # Yoshida:
-            #
-            # psi = phi + alpha sin(theta)
+            # Yoshida: psi = phi + alpha sin(theta)
 
-            turning_rate = (
-                curvature
-                + WEATHERVANE_INDEX * np.sin(theta)
-            )
+            turning_rate = (curvature + WEATHERVANE_INDEX * np.sin(theta) )
 
         else:
-
             turning_rate = curvature
-
-        # ----------------------------------------------------
         # Convert curvature to change in direction
-        # ----------------------------------------------------
-
         # Curvature is treated as degrees/mm
-        angle_change = (
-            turning_rate
-            * STEP_SIZE
-            * np.pi / 180
-        )
-
+        angle_change = ( turning_rate * STEP_SIZE * np.pi / 180)
         direction += angle_change
 
-        # ----------------------------------------------------
-        # KLINOKINESIS / PIROUETTE
-        # ----------------------------------------------------
+        # Klinokinesis / Pirouette
 
         if mechanism in ["klinokinesis", "both"]:
 
@@ -256,19 +174,10 @@ def simulate_worm(
                 pirouettes += 1
 
                 # Large reorientation.
-                #
-                # A realistic model would sample this
-                # from the experimental turning-angle
-                # distribution in Yoshida's Supplementary
-                # Figure S1e.
-                #
-                # Here we approximate it with a random
-                # angle between 100 and 180 degrees.
+                # A realistic model would sample this from the experimental turning-angle distribution in Yoshida's Supplementary (Fig S1e)
+                # Here approximate it with a random angle between 100 and 180 degrees.
 
-                turn_angle = np.random.uniform(
-                    np.deg2rad(100),
-                    np.deg2rad(180)
-                )
+                turn_angle = np.random.uniform(np.deg2rad(100),np.deg2rad(180))
 
                 # Randomly choose left or right
                 if np.random.random() < 0.5:
@@ -276,9 +185,7 @@ def simulate_worm(
 
                 direction += turn_angle
 
-        # ----------------------------------------------------
-        # MOVE FORWARD
-        # ----------------------------------------------------
+        # Move forward
 
         x += STEP_SIZE * np.cos(direction)
         y += STEP_SIZE * np.sin(direction)
@@ -290,16 +197,9 @@ def simulate_worm(
         "pirouettes": pirouettes
     }
 
+# simulate multiple worms
 
-# ============================================================
-# 7. SIMULATE MULTIPLE WORMS
-# ============================================================
-
-def simulate_population(
-    mechanism,
-    n_worms=N_WORMS
-):
-
+def simulate_population(mechanism, n_worms=N_WORMS):
     worms = []
 
     for _ in range(n_worms):
@@ -308,26 +208,15 @@ def simulate_population(
         start_y = np.random.uniform(-10, 10)
 
         # Random starting direction
-        start_direction = np.random.uniform(
-            -np.pi,
-            np.pi
-        )
+        start_direction = np.random.uniform(-np.pi, np.pi)
 
-        worm = simulate_worm(
-            mechanism=mechanism,
-            start_x=0,
-            start_y=start_y,
-            start_direction=start_direction
-        )
-
+        worm = simulate_worm(mechanism=mechanism, start_x=0, start_y=start_y, start_direction=start_direction)
         worms.append(worm)
 
     return worms
 
 
-# ============================================================
-# 8. CREATE ODOUR LANDSCAPE FOR PLOTTING
-# ============================================================
+# create odour landscape for plotting
 
 def create_landscape():
 
@@ -336,120 +225,58 @@ def create_landscape():
 
     X, Y = np.meshgrid(x, y)
 
-    C = odour_concentration(
-        X,
-        Y,
-        source_x=10,
-        source_y=0
-    )
-
+    C = odour_concentration(X, Y, source_x=10,source_y=0 )
     return X, Y, C
 
+# plot trajectorys
 
-# ============================================================
-# 9. PLOT TRAJECTORIES
-# ============================================================
-
-def plot_population(
-    worms,
-    title
-):
+def plot_population(worms, title):
 
     X, Y, C = create_landscape()
-
     plt.figure(figsize=(10, 6))
-
-    plt.contourf(
-        X,
-        Y,
-        C,
-        levels=30
-    )
-
-    # Plot only a subset of worms
-    # so the figure remains readable.
+    plt.contourf( X, Y, C, levels=30)
+    # Plot only a subset of worms (so the figure is readable)
 
     for worm in worms[:30]:
 
-        plt.plot(
-            worm["x"],
-            worm["y"],
-            linewidth=0.7,
-            alpha=0.6
-        )
+        plt.plot(worm["x"], worm["y"],linewidth=0.7, alpha=0.6)
 
     # Odour source
-
-    plt.scatter(
-        10,
-        0,
-        s=100,
-        marker="*",
-        label="Odour source"
-    )
+    plt.scatter( 10, 0,  s=100, marker="*", label="Odour source" )
 
     plt.xlabel("x position (mm)")
     plt.ylabel("y position (mm)")
     plt.title(title)
-
     plt.legend()
-
     plt.tight_layout()
-
     plt.show()
 
 
-# ============================================================
-# 10. RUN THE SIMULATIONS
-# ============================================================
-
+# run simulations
 if __name__ == "__main__":
 
     print("Running random walk...")
-
-    random_worms = simulate_population(
-        "random"
-    )
+    random_worms = simulate_population( "random")
 
     print("Running klinokinesis...")
 
-    klinokinesis_worms = simulate_population(
-        "klinokinesis"
-    )
+    klinokinesis_worms = simulate_population("klinokinesis" )
 
     print("Running klinotaxis...")
 
-    klinotaxis_worms = simulate_population(
-        "klinotaxis"
-    )
+    klinotaxis_worms = simulate_population( "klinotaxis" )
 
     print("Running combined model...")
 
-    combined_worms = simulate_population(
-        "both"
-    )
+    combined_worms = simulate_population( "both" )
 
 
-    # ========================================================
-    # 11. DISPLAY RESULTS
-    # ========================================================
+    # display results
 
-    plot_population(
-        random_worms,
-        "Random walk"
-    )
+    plot_population( random_worms,"Random walk" )
 
-    plot_population(
-        klinokinesis_worms,
-        "Klinokinesis"
-    )
+    plot_population( klinokinesis_worms,"Klinokinesis")
 
-    plot_population(
-        klinotaxis_worms,
-        "Klinotaxis / weathervane"
-    )
+    plot_population( klinotaxis_worms,"Klinotaxis / weathervane")
 
-    plot_population(
-        combined_worms,
-        "Klinokinesis + klinotaxis"
-    )
+    plot_population( combined_worms, "Klinokinesis + klinotaxis")
