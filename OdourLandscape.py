@@ -8,10 +8,7 @@ def odour_concentration(x, y, source_x=10, source_y=0):
     Concentration decreases with distance.
     """
 
-    distance = np.sqrt(
-        (x - source_x)**2 +
-        (y - source_y)**2
-    )
+    distance = np.sqrt( (x - source_x)**2 +(y - source_y)**2)
 
     # characteristic length scale of the odour
     decay_length = 8.0
