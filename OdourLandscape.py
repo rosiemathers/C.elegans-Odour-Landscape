@@ -20,37 +20,34 @@ def odour_concentration(x, y, source_x=10, source_y=0):
 
 #parameters for simulation
 
-DT = 0.5                 # timestep (seconds)
-SPEED = 0.22             # worm speed (mm/s)
-STEP_SIZE = SPEED * DT   # distance travelled per timestep
+dt = 0.5                 # timestep (seconds)
+speed = 0.22             # worm speed (mm/s)
+step_size = speed * dt   # distance travelled per timestep
 
-N_STEPS = 2000           # 1000 seconds
-N_WORMS = 100
+n_steps = 2000           # 1000 seconds
+n_worms = 100
 
 # correlated curvature parameters from Yoshida et al. paper
-CURVATURE_MEMORY = 0.933
-CURVATURE_NOISE = 11.6
+curvature_memory = 0.933
+curvature_noise = 11.6
 
 #pirouette paramers
 #simplified values for reconstruction, paper's exact behavioural parameters are presented graphically (rather than as a complete numerical table)
 
-BASE_PIRouETTE_PROB = 0.025
+base_pirouette_prob = 0.025
 
 # positive value means: moving down the attractive gradient increases turning
-PIRouETTE_INDEX = 0.025
+pirouette_index = 0.025
 
 
 #weathervane parameters
 # controls strength of klinotaxis.
-WEATHERVANE_INDEX = 8.0
+weathervane_index = 8.0
 
 # additional functions
 def angle_difference(a, b):
     # smallest difference between two angles.
-    return np.arctan2(
-        np.sin(a - b),
-        np.cos(a - b)
-    )
+    return np.arctan2( np.sin(a - b),np.cos(a - b))
 
 
 def source_bearing(x, y, direction, source_x=10, source_y=0):
@@ -63,16 +60,8 @@ def source_bearing(x, y, direction, source_x=10, source_y=0):
     theta < 0:source to the other side
     """
 
-    angle_to_source = np.arctan2(
-        source_y - y,
-        source_x - x
-    )
-
-    theta = angle_difference(
-        angle_to_source,
-        direction
-    )
-
+    angle_to_source = np.arctan2(source_y - y,source_x - x)
+    theta = angle_difference(angle_to_source, direction )
     return theta
 
 
@@ -93,22 +82,12 @@ def pirouette_probability(theta):
         higher probability of pirouette
     """
 
-    probability = (
-        BASE_PIRouETTE_PROB
-        - PIRouETTE_INDEX * np.cos(theta)
-    )
+    probability = ( base_pirouette_prob- pirouette_index * np.cos(theta) )
 
     return np.clip(probability, 0, 1)
 
 #simulate one worm
-def simulate_worm(
-    mechanism="both",
-    start_x=0,
-    start_y=0,
-    start_direction=0,
-    source_x=10,
-    source_y=0
-):
+def simulate_worm( mechanism="both", start_x=0,start_y=0,start_direction=0,source_x=10, source_y=0):
     """
     Simulate one worm.
 
@@ -126,22 +105,22 @@ def simulate_worm(
 
     curvature = 0.0
 
-    trajectory_x = np.zeros(N_STEPS)
-    trajectory_y = np.zeros(N_STEPS)
+    trajectory_x = np.zeros(n_steps)
+    trajectory_y = np.zeros(n_steps)
 
-    concentrations = np.zeros(N_STEPS)
+    concentrations = np.zeros(n_steps)
 
     pirouettes = 0
 
-    for i in range(N_STEPS):
+    for i in range(n_steps):
         #records current position
         trajectory_x[i] = x
         trajectory_y[i] = y
 
         concentrations[i] = odour_concentration( x, ysource_x, source_y)
         # correlated random curvature
-        random_noise = np.random.normal(0, CURVATURE_NOISE)
-        curvature = ( CURVATURE_MEMORY * curvature + random_noise )
+        random_noise = np.random.normal(0, curvature_noise)
+        curvature = ( curvature_memory * curvature + random_noise )
         # Angle between worm direction and source
         theta = source_bearing(x, y, direction, source_x, source_y)
 
@@ -151,13 +130,13 @@ def simulate_worm(
 
             # Yoshida: psi = phi + alpha sin(theta)
 
-            turning_rate = (curvature + WEATHERVANE_INDEX * np.sin(theta) )
+            turning_rate = (curvature + weathervane_index * np.sin(theta) )
 
         else:
             turning_rate = curvature
         # Convert curvature to change in direction
         # Curvature is treated as degrees/mm
-        angle_change = ( turning_rate * STEP_SIZE * np.pi / 180)
+        angle_change = ( turning_rate * step_size * np.pi / 180)
         direction += angle_change
 
         # Klinokinesis / Pirouette
@@ -184,8 +163,8 @@ def simulate_worm(
 
         # Move forward
 
-        x += STEP_SIZE * np.cos(direction)
-        y += STEP_SIZE * np.sin(direction)
+        x += step_size * np.cos(direction)
+        y +=step_size* np.sin(direction)
 
     return {
         "x": trajectory_x,
