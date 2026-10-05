@@ -47,13 +47,13 @@ where:
 Klinokinesis
 
 The probability of a pirouette is dependent on the worm's direction relative to the odour source:
-$$
-P_{\mathrm{pirouette}}
+
+$P_{\mathrm{pirouette}}$
 =
-P_{\mathrm{basal}}
+$P_{\mathrm{basal}}$
 -
-I_{\mathrm{pirouette}}\cos(\theta)
-$$
+$I_{\mathrm{pirouette}}\cos(\theta)$ 
+
 A pirouette causes the worm to make a large reorientation before continuing its movement.
 
 ## Simulation
